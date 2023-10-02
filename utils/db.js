@@ -1,4 +1,4 @@
-import mongodb from 'mongodb';
+const { MongoClient } = require('mongodb');
 
 
 class DBClient {
