@@ -56,6 +56,30 @@ class UsersController {
       return res.status(500).json({ error: 'Internal Server Error' });
     }
   }
+
+  static async getMe(req, res) {
+    const { userId } = req;
+
+    // Check if userId is available from the request
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    try {
+      // Retrieve the user from the database based on userId
+      const user = await dbClient.db.collection('users').findOne({ _id: userId });
+
+      if (!user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const responseUser = { email: user.email, id: user._id };
+      return res.status(200).json(responseUser);
+    } catch (error) {
+      console.error('Error retrieving user:', error);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+  }
 }
 
 export default UsersController;
