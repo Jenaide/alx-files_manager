@@ -120,6 +120,67 @@ class FilesController {
 
   response.status(201).send(finalFilesArray);
   }
+
+
+  static async putPublish(req, res) {
+    const { id } = req.params;
+    const token = req.header('X-Token');
+    const userId = await getUserIdFromToken(token);
+  
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const fileId = new ObjectID(id);
+    const file = await getFileByIdAndUserId(fileId, userId);
+
+    if (!file) {
+      return res.status(404).json({ error: 'Not found' });
+    }
+
+    await updateFileToPublic(fileId);
+
+    const updatedFile = {
+      id: file._id,
+      userId: file.userId,
+      name: file.name,
+      type: file.type,
+      isPublic: true,
+      parentId: file.parentId,
+    };
+
+    res.status(200).json(updatedFile);
+  }
+
+  static async putUnPublish(req, res) {
+    const { id } = req.params;
+    const token = req.header('X-Token');
+    const userId = await getUserIdFromToken(token);
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const fileId = new ObjectID(id);
+    const file = await getFileByIdAndUserId(fileId, userId);
+
+    if (!file) {
+      return res.status(404).json({ error: 'Not found' });
+    }
+
+    await updateFileToUnpublic(fileId);
+
+    const updatedFile = {
+      id: file._id,
+      userId: file.userId,
+      name: file.name,
+      type: file.type,
+      isPublic: false,
+      parentId: file.parentId,
+    };
+
+    res.status(200).json(updatedFile);
+  }
 }
 
 export default FilesController;
