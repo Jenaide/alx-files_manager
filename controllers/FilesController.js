@@ -14,26 +14,26 @@ class FilesController {
     const userId = await getUserIdFromToken(request);
 
     if (!userId) {
-      return response.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
     const { name, type, data, parentId, isPublic } = req.body;
     const allowedTypes = ['file', 'folder', 'image'];
 
     if (!name) {
-      return response.status(400).json({ error: 'Missing name' });
+      return res.status(400).json({ error: 'Missing name' });
     }
 
     if (!type || !allowedTypes.includes(type)) {
-      return response.status(400).json({ error: 'Missing or invalid type' });
+      return res.status(400).json({ error: 'Missing or invalid type' });
     }
 
     if (!data && type !== 'folder') {
-      return response.status(400).json({ error: 'Missing data' });
+      return res.status(400).json({ error: 'Missing data' });
     }
 
     if (parentId && !(await isValidParent(parentId, userId))) {
-      return response.status(400).json({ error: 'Invalid parent' });
+      return res.status(400).json({ error: 'Invalid parent' });
     }
 
     const filePath = type !== 'folder' ? await saveFile(data) : null;
@@ -47,7 +47,78 @@ class FilesController {
       localPath: filePath,
     });
 
-    return response.status(201).json(insertedFile);
+    return res.status(201).json(insertedFile);
+  }
+
+  static async getShow(req, res) {
+    const fileId = req.params.id;
+    const fileObjId = new ObjectId(fileId);
+    const userId = await getUserIdFromToken(request);
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const existingUser = await getUserById(userId);
+
+    if (!existingUser) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const requestedFile = await getFileById(fileObjId);
+
+    if (!requestedFile) {
+      return res.status(401).json({ error: 'Not found' });
+    }
+
+    res.status(200).json({
+      id: requestedFile._id,
+      userId: requestedFile.userId,
+      name: requestedFile.name,
+      type: requestedFile.type,
+      isPublic: requestedFile.isPublic,
+      parentId: requestedFile.parentId,
+    });
+  }
+
+  static async getIndex(req, res) {
+    const userId = await getUserIdFromToken(request);
+
+    if (!userId) {
+    return response.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const existingUser = await getUserById(userId);
+
+  if (!existingUser) {
+    return response.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const { parentId, page = 0 } = request.query;
+
+  const parentObjId = parentId ? new ObjectID(parentId) : null;
+  const userObjId = new ObjectID(userId);
+
+  const query = {
+    userId: userObjId,
+  };
+
+  if (parentObjId) {
+    query.parentId = parentObjId;
+  }
+
+  const files = await getFiles(query, page);
+
+  const finalFilesArray = files.map((file) => ({
+    id: file._id,
+    userId: file.userId,
+    name: file.name,
+    type: file.type,
+    isPublic: file.isPublic,
+    parentId: file.parentId,
+  }));
+
+  response.status(201).send(finalFilesArray);
   }
 }
 

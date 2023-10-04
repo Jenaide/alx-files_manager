@@ -50,3 +50,13 @@ async function insertFile(fileData) {
     parentId: fileData.parentId,
   };
 }
+
+async function getUserById(userId) {
+  const users = dbClient.db.collection('users');
+  return await users.findOne({ _id: new ObjectID(userId) });
+}
+
+async function getFileById(fileId) {
+  const files = dbClient.db.collection('files');
+  return await files.findOne({ _id: fileId });
+}
