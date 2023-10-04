@@ -181,6 +181,40 @@ class FilesController {
 
     res.status(200).json(updatedFile);
   }
+
+  static async getFile(req, res) {
+    const { id } = req.params;
+    const size = req.query.size || null;
+    const token = req.header('X-Token');
+    const userId = await getUserIdFromToken(token);
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const fileId = new ObjectID(id);
+    const file = await getFileById(fileId);
+
+    if (!file) {
+      return res.status(404).json({ error: 'Not found' });
+    }
+
+    if (file.type === 'folder') {
+      return res.status(400).json({ error: 'A folder doesn\'t have content' });
+    }
+
+    const filePath = size ? `${file.localPath}_${size}` : file.localPath;
+
+    if (!await fileExists(filePath)) {
+      return res.status(404).json({ error: 'Not found' });
+    }
+
+    const absoluteFilePath = await getRealPath(filePath);
+    const contentTypeHeader = contentType(file.name) || 'text/plain; charset=utf-8';
+
+    res.setHeader('Content-Type', contentTypeHeader);
+    res.status(200).sendFile(absoluteFilePath);
+  }
 }
 
 export default FilesController;
