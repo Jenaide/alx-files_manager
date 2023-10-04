@@ -2,6 +2,7 @@ import { Router } from 'express';
 import AppController from '../controllers/AppController';
 import UsersController from '../controllers/UsersController';
 import AuthController from '../controllers/AuthController';
+import FilesController from '../controllers/FilesController';
 
 
 const router = Router();
@@ -10,12 +11,14 @@ const router = Router();
 router.get('/status', AppController.getStatus);
 router.get('/stats', AppController.getStats);
 
-// Add the route for creating a new user
+// the route for creating a new user
 router.post('/users', UsersController.postNew);
-// Add the new authentication endpoints
+// the new authentication endpoints
 router.get('/connect', AuthController.getConnect);
 router.get('/disconnect', AuthController.getDisconnect);
-// Add the route for getting user details based on the token
+// the route for getting user details based on the token
 router.get('/users/me', UsersController.getMe);
+
+router.post('/files', FilesController.postUpload);
 
 export default router;
