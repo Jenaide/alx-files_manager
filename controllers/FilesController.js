@@ -2,6 +2,10 @@ import fs from 'fs';
 import dbClient from '../utils/db';
 import { v4 as uuidv4 } from 'uuid';
 import { getUserFromToken, isValidParent, saveFile, insertFile } from '../utils/auth';
+import Queue from 'bull/lib/queue';
+
+
+const fileQueue = new Queue('thumbnail generation');
 
 
 class FilesController {
